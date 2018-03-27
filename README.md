@@ -6,6 +6,9 @@ using heroku, follow https://devcenter.heroku.com/articles/getting-started-with-
 
 app detail
 https://radiant-earth-91071.herokuapp.com/ | https://git.heroku.com/radiant-earth-91071.git
+now it auto push using this github to git.heroku
 
 heroku dashboard
 https://dashboard.heroku.com/apps/radiant-earth-91071
+
+auth using bugsmail/heroxdr3
