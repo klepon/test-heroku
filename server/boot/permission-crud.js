@@ -32,12 +32,13 @@ module.exports = function(app) {
     // if current model is project
     if (!parentMapping[model]) {
       callback(contextID); // it is top ancester
+      return;
     }
 
     // get project id (has permission) or 0 (no permission)
     switch (parentMapping[model]) {
       case MODEL_TASK:
-      console.log("================================================== masuk task");
+        console.log("================================================== masuk task");
         app.models.Task.findById(parentID, function(err, task) {
           if (err || task === null) {
             callback(0);
@@ -51,7 +52,7 @@ module.exports = function(app) {
 
         break;
       case MODEL_SPRINT:
-      console.log("================================================== masuk sprint");
+        console.log("================================================== masuk sprint");
 
         app.models.Sprint.findById(parentID, function(err, sprint) {
           if (err || sprint === null) {
