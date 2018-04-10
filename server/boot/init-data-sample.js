@@ -33,8 +33,36 @@ module.exports = function(app) {
   });
 
   Project.create([
-    {name: 'project 1', description: 'description project 1, total ada 2'},
-    {name: 'project 2', description: 'description project 2, total ada 2'}
+    {name: '1 project 1', description: 'description project 1, total ada 2', date: '2017-03-27T12:51:15.795Z'},
+    {name: '2 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '3 dolor ipsum', description: 'kolor ijo suka bikin sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '4l orem amet', description: 'kolor ijo suka jual sumsum', date: '2017-04-20T12:51:15.795Z'},
+    {name: '5k olor ipsum', description: 'kolor ijo suka masak sumsum', date: '2018-03-20T12:51:15.795Z'},
+    {name: '6l orem ijo', description: 'kolor ijo suka bagi sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '7a pe ipsum', description: 'kolor ijo suka bubur sumsum warna warni', date: '2015-12-20T12:51:15.795Z'},
+    {name: '8l orem kaden', description: 'kolor ijo kaden bubur sumsum', date: '2017-03-15T12:51:15.795Z'},
+    {name: '9l orem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-07-20T12:51:15.795Z'},
+    {name: '10 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '11 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '12 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '13 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '14 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '15 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '16 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '17 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '18 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '19 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '20 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '21 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '22 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '23 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '24 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '25 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '26 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '27 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '28 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '29 lorem ipsum', description: 'kolor ijo suka bubur sumsum', date: '2017-03-20T12:51:15.795Z'},
+    {name: '30 project 2', description: 'description project 2, total ada 2', date: '2017-03-27T12:51:15.795Z'}
   ], function(err, projects) {
     if (err) throw err;
 

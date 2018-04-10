@@ -1,24 +1,9 @@
+const modelPermissions = require('../_static-permissions.js');
+
 module.exports = function(app) {
   const MODEL_PROJECT = 'project';
   const MODEL_SPRINT = 'sprint';
   const MODEL_TASK = 'task';
-
-  const modelPermissions = [
-    {model: 'project', permission: 'createProject'},
-    {model: 'project', permission: 'findProject'},
-    {model: 'project', permission: 'updateProject'},
-    {model: 'project', permission: 'deleteProject'},
-
-    {model: 'sprint', permission: 'createSprint'},
-    {model: 'sprint', permission: 'updateSprint'},
-    {model: 'sprint', permission: 'deleteSprint'},
-
-    {model: 'task', permission: 'createTask'},
-    {model: 'task', permission: 'updateTask'},
-    {model: 'task', permission: 'deleteTask'},
-
-    {model: ['comment', 'note'], permission: 'teamMember'}
-  ];
 
   const parentMapping = {
     comment: MODEL_TASK,
@@ -38,13 +23,13 @@ module.exports = function(app) {
     // get project id (has permission) or 0 (no permission)
     switch (parentMapping[model]) {
       case MODEL_TASK:
-        console.log("================================================== masuk task");
+        // console.log("================================================== masuk task");
         app.models.Task.findById(parentID, function(err, task) {
           if (err || task === null) {
             callback(0);
           }
 
-          console.log("================================================== ada task parent");
+          // console.log("================================================== ada task parent");
 
 
           getProjectId(MODEL_TASK, task.parentID, 0, callback);
@@ -52,14 +37,14 @@ module.exports = function(app) {
 
         break;
       case MODEL_SPRINT:
-        console.log("================================================== masuk sprint");
+        // console.log("================================================== masuk sprint");
 
         app.models.Sprint.findById(parentID, function(err, sprint) {
           if (err || sprint === null) {
             callback(0);
           }
 
-          console.log("================================================== ada sprint parent:", sprint.parentID);
+          // console.log("================================================== ada sprint parent:", sprint.parentID);
 
           callback(sprint.parentID);
         });
@@ -75,6 +60,10 @@ module.exports = function(app) {
   };
 
   for(const roleObj of modelPermissions) {
+    // exclude admin
+    if(roleObj.roleKey === 'admin') continue;
+
+    // handle permissions
     app.models.Role.registerResolver(roleObj.permission, function(role, context, cb) {
       function reject() {
         process.nextTick(function() {
@@ -95,7 +84,7 @@ module.exports = function(app) {
         }
       }
 
-      console.log(modelName);
+      // console.log(modelName);
 
       if (context.modelName !== modelName) {
         return reject();
@@ -114,7 +103,7 @@ module.exports = function(app) {
       // if user have roleObj.permission
       getProjectId(modelName, parentID, contextID, function(projectID){
 
-        console.log('masuk callback');
+        // console.log('masuk callback');
 
         app.models.Team.count({
           tukangID: context.accessToken.userId,

@@ -24,6 +24,11 @@ module.exports = function(Project) {
     };
   });
 
+  Project.beforeRemote('create', function(context, modelInstance, next) {
+    context.args.data.date = Date.now();
+    // context.args.data.publisherId = context.req.accessToken.userId;
+    next();
+  });
 
 //   Project.beforeRemote( '*', function( ctx, modelInstance, next) {
 //     console.log(ctx);
