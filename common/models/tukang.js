@@ -23,6 +23,13 @@ module.exports = function(Tukang) {
   //   }
   // );
 
+  //   Project.beforeRemote( '*', function( ctx, modelInstance, next) {
+  //     console.log(ctx);
+  //     console.log(modelInstance);
+  //     console.log('masuk project');
+  //     next();
+  // });
+
   Tukang.disableRemoteMethodByName("prototype.__delete__projects");   // disbale delete all projects
   Tukang.disableRemoteMethodByName("prototype.__delete__teams");   // disbale delete all teams
 

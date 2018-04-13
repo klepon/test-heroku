@@ -16,6 +16,7 @@ module.exports = function(app) {
   const getProjectId = (model, parentID, contextID, callback) => {
     // if current model is project
     if (!parentMapping[model]) {
+      // console.log('================================================== masuk ancestor');
       callback(contextID); // it is top ancester
       return;
     }
@@ -28,24 +29,18 @@ module.exports = function(app) {
           if (err || task === null) {
             callback(0);
           }
-
           // console.log("================================================== ada task parent");
-
-
           getProjectId(MODEL_TASK, task.parentID, 0, callback);
         });
 
         break;
       case MODEL_SPRINT:
         // console.log("================================================== masuk sprint");
-
         app.models.Sprint.findById(parentID, function(err, sprint) {
           if (err || sprint === null) {
             callback(0);
           }
-
           // console.log("================================================== ada sprint parent:", sprint.parentID);
-
           callback(sprint.parentID);
         });
 
@@ -55,6 +50,7 @@ module.exports = function(app) {
 
         break;
       default:
+        // console.log('================================================== masuk default');
         callback(0);
     }
   };
@@ -64,7 +60,7 @@ module.exports = function(app) {
     if(roleObj.roleKey === 'admin') continue;
 
     // handle permissions
-    app.models.Role.registerResolver(roleObj.permission, function(role, context, cb) {
+    app.models.Role.registerResolver(roleObj.roleKey, function(role, context, cb) {
       function reject() {
         process.nextTick(function() {
           cb(null, false);
@@ -100,15 +96,15 @@ module.exports = function(app) {
         return reject();
       }
 
-      // if user have roleObj.permission
+      // if user have roleObj.roleKey
       getProjectId(modelName, parentID, contextID, function(projectID){
 
-        // console.log('masuk callback');
+        // console.log('masuk callback projectID: ', projectID);
 
-        app.models.Team.count({
+        app.models.Access.count({
           tukangID: context.accessToken.userId,
           projectID: projectID,
-          roleKey: roleObj.permission
+          roleKey: roleObj.roleKey
         }, function(err, count) {
           if (err) {
             return reject();

@@ -1,0 +1,33 @@
+{
+  "name": "group",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "companyID": {
+      "type": "number",
+      "required": true
+    },
+    "tukangID": {
+      "type": "number",
+      "required": true
+    },
+    "projectID": {
+      "type": "number",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY"
+    }
+  ],
+  "methods": {}
+}

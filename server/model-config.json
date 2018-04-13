@@ -40,9 +40,17 @@
     "dataSource": "db",
     "public": true
   },
-  "team": {
+  "access": {
     "dataSource": "db",
     "public": false
+  },
+  "group": {
+    "dataSource": "db",
+    "public": false
+  },
+  "company": {
+    "dataSource": "db",
+    "public": true
   },
   "tukang": {
     "dataSource": "db",

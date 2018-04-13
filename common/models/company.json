@@ -1,6 +1,5 @@
 {
-  "name": "project",
-  "plural": "project",
+  "name": "company",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -10,24 +9,10 @@
     "name": {
       "type": "string",
       "required": true
-    },
-    "description": {
-      "type": "string",
-      "required": true
-    },
-    "date": {
-      "type": "date",
-      "required": true
     }
   },
   "validations": [],
-  "relations": {
-    "sprints": {
-      "type": "hasMany",
-      "model": "sprint",
-      "foreignKey": "parentID"
-    }
-  },
+  "relations": {},
   "acls": [
     {
       "accessType": "*",
@@ -37,31 +22,25 @@
     },
     {
       "principalType": "ROLE",
-      "principalId": "createProject",
+      "principalId": "admin",
       "permission": "ALLOW",
       "property": "create"
     },
     {
       "principalType": "ROLE",
-      "principalId": "findMyProjects",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "find"
     },
     {
       "principalType": "ROLE",
-      "principalId": "findProject",
-      "permission": "ALLOW",
-      "property": "findById"
-    },
-    {
-      "principalType": "ROLE",
-      "principalId": "updateProject",
+      "principalId": "admin",
       "permission": "ALLOW",
       "property": "replaceById"
     },
     {
       "principalType": "ROLE",
-      "principalId": "deleteProject",
+      "principalId": "admin",
       "permission": "ALLOW",
       "property": "deleteById"
     }

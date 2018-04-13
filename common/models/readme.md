@@ -2,6 +2,11 @@
 "email":"qw@qw.qw",
 "password":"123456"
 
+access -> user - project - role
+group -> user - project - company 
+company -> name
+
+
 
 ** user role:
 --- need to create invite mapping model
