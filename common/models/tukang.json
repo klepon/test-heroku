@@ -37,7 +37,7 @@
     },
     {
       "principalType": "ROLE",
-      "principalId": "$everyone",
+      "principalId": "findUser",
       "permission": "ALLOW",
       "property": "findById"
     },
