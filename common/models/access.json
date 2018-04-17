@@ -7,7 +7,7 @@
   },
   "properties": {
     "roleKey": {
-      "type": "string",
+      "type": "array",
       "required": true
     },
     "projectID": {

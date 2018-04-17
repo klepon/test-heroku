@@ -56,8 +56,9 @@ module.exports = function(app) {
   };
 
   for(const roleObj of modelPermissions) {
-    // exclude admin
+    // exclude admin, createProject
     if(roleObj.roleKey === 'admin') continue;
+    if(roleObj.roleKey === 'createProject') continue;
 
     // handle permissions
     app.models.Role.registerResolver(roleObj.roleKey, function(role, context, cb) {

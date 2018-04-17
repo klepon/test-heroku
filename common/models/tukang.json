@@ -7,15 +7,24 @@
     "validateUpsert": true
   },
   "properties": {
-    "position": {
+    "discipline": {
       "type": "string"
     },
     "name": {
       "type": "string"
+    },
+    "hash": {
+      "type": "string"
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "projects": {
+      "type": "hasMany",
+      "model": "project",
+      "foreignKey": "ownerID"
+    }
+  },
   "acls": [
     {
       "accessType": "*",
@@ -55,7 +64,7 @@
     },
     {
       "principalType": "ROLE",
-      "principalId": "$everyone",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "logout"
     },

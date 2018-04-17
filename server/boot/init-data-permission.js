@@ -3,6 +3,7 @@ const modelPermissions = require('../_static-permissions.js');
 module.exports = function(app) {
   var Permission = app.models.permission;
 
+  // add default permission, first check make sure permission admin not exists before save data
   Permission.count({
     roleKey: 'admin'
   }, function(err, count) {

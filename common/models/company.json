@@ -24,25 +24,7 @@
       "principalType": "ROLE",
       "principalId": "admin",
       "permission": "ALLOW",
-      "property": "create"
-    },
-    {
-      "principalType": "ROLE",
-      "principalId": "$authenticated",
-      "permission": "ALLOW",
-      "property": "find"
-    },
-    {
-      "principalType": "ROLE",
-      "principalId": "admin",
-      "permission": "ALLOW",
       "property": "replaceById"
-    },
-    {
-      "principalType": "ROLE",
-      "principalId": "admin",
-      "permission": "ALLOW",
-      "property": "deleteById"
     }
   ],
   "methods": {}

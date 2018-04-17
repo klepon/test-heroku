@@ -1,85 +1,123 @@
 'use strict';
+const md5 = require('md5');
+const sendMail = require('../../server/_send-email.js');
+
+const msg = `asas
+<p>asasas</p>asasasas
+<strong>asasas</strong>`;
+sendMail('bugs1945@gmail.com', ['bugs1945@gmail.com'], "Fred Foo 👻", msg, 'plain text message');
 
 module.exports = function(Tukang) {
-  // on register by invite, include in team as team lead | member | accounting | product manager base on invited mapping
-
-  // on create project, do nothing, it already as owner
-
-  // on get data, include access, group, company data
-  Tukang.afterRemote('findById', function(ctx, user, next) {
-    if(ctx.result) {
-      // is user have access createProject
-      const getAccess = () => {
-        return new Promise((resolve, reject) => {
-          Tukang.app.models.Access.find({
-            where: {
-              roleKey: 'createProject',
-              tukangID: ctx.result.id
-            }
-          }, function(err, rs) {
-            const o = {createProject : false};
-
-            if (rs) {
-              o['createProject'] = true;
-            }
-
-            resolve(o);
-            reject(o)
-          });
-        });
-      };
-
-      // get user company
-      const getCompany = () => {
-        return new Promise((resolve, reject) => {
-          Tukang.app.models.Group.find({
-            fields: {
-              companyID: true
-            },
-            where: {
-              tukangID: ctx.result.id
-            }
-          }, function(err, group) {
-            const o = {name : 'My Company'};
-
-            if (group) {
-              Tukang.app.models.Company.find({
-                where: {
-                  id: group[0].companyID
-                }
-              }, function(err, rs) {
-                if (rs) {
-                  o['name'] = rs[0].name;
-                }
-
-                resolve(o);
-                reject(o)
-              });
-            } else {
-              resolve(o);
-              reject(o)
-            }
-          });
-        });
-      };
-
-      // add access and company to user object
-      const getUserData = async () => {
-        const access = await getAccess();
-        const company = await getCompany();
-
-        ctx.result.createProject = access.createProject;
-        ctx.result.company = company.name;
-        next();
-      };
-
-      getUserData();
-
-    } else {
-      next();
+  // before register add hash, ie:
+  Tukang.beforeRemote('create', function(ctx, user, next) {
+    ctx.args.data = {
+      "discipline": "",
+      "name": "",
+      "realm": "",
+      "hash": md5(md5(`${ctx.args.data.email} ${ctx.args.data.password} ${Math.random()}`)),
+      "username": ctx.args.data.email,
+      "email": ctx.args.data.email,
+      "password": ctx.args.data.password,
+      "emailVerified": false
     }
 
+    next();
   });
+
+  // after register, remove some data
+  Tukang.afterRemote('create', function(ctx, user, next) {
+    ctx.result = {
+      "id": ctx.result.id,
+    }
+    next();
+  });
+
+  // on get data, include access, group, company data
+  // Tukang.afterRemote('findById', function(ctx, user, next) {
+  //   if(ctx.result) {
+  //     // is user have access createProject
+  //     const getAccess = () => {
+  //       return new Promise((resolve, reject) => {
+  //         Tukang.app.models.Access.find({
+  //           fields: {
+  //             roleKey: true
+  //           },
+  //           where: {
+  //             tukangID: ctx.result.id
+  //           }
+  //         }, function(err, rs) {
+  //           const o = {
+  //             createProject : false,
+  //             admin: false
+  //           };
+  //
+  //           if (rs) {
+  //             rs.map(access => {
+  //               if(access.roleKey === 'admin') o['admin'] = true;
+  //               if(access.roleKey === 'createProject') o['createProject'] = true;
+  //               return true;
+  //             });
+  //           }
+  //
+  //           resolve(o);
+  //           reject(o)
+  //         });
+  //       });
+  //     };
+  //
+  //     // get user company
+  //     const getCompany = () => {
+  //       return new Promise((resolve, reject) => {
+  //         Tukang.app.models.Group.find({
+  //           fields: {
+  //             companyID: true
+  //           },
+  //           where: {
+  //             tukangID: ctx.result.id
+  //           }
+  //         }, function(err, group) {
+  //           let o = {name : ''};
+  //
+  //           console.log('=== group: ', group);
+  //
+  //           if (group.length > 0) {
+  //             Tukang.app.models.Company.find({
+  //               where: {
+  //                 id: group[0].companyID
+  //               }
+  //             }, function(err, rs) {
+  //               if (rs) {
+  //                 o = rs[0];
+  //               }
+  //
+  //               resolve(o);
+  //               reject(o)
+  //             });
+  //           } else {
+  //             resolve(o);
+  //             reject(o)
+  //           }
+  //         });
+  //       });
+  //     };
+  //
+  //     // add access and company to user object
+  //     const getUserData = async () => {
+  //       const access = await getAccess();
+  //       const company = await getCompany();
+  //
+  //       ctx.result.access = access;
+  //       ctx.result.company = company;
+  //       next();
+  //     };
+  //
+  //     getUserData();
+  //
+  //   } else {
+  //     next();
+  //   }
+  //
+  // });
 
   // ini tester dan sudah bisa, perlu add di tukang.jason allow owner getName
   // Tukang.getName = function(shopId, cb) {

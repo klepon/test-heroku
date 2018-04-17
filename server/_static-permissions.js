@@ -1,20 +1,18 @@
+// all login user can create project
+// free user only can create one project
 module.exports = [
    {
+      type: "paid",
       roleKey:"admin",
       descriptionEn:"Admin can add, edit, delete permission",
       descriptionId:"Admin bisa menambah, mengubah, menghapus permission",
       model:"project"
    },
    {
+      type: "all",
       roleKey:"createProject",
       descriptionEn:"Create project",
       descriptionId:"Membuat proyek",
-      model:"project"
-   },
-   {
-      roleKey:"findMyProjects",
-      descriptionEn:"Find all my project",
-      descriptionId:"Mencari semua proyek saya",
       model:"project"
    },
    {

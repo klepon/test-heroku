@@ -19,56 +19,42 @@ module.exports = function(app) {
     {username: 'John', email: 'qw@qw.qw6', password: '123456'},
     {username: 'John', email: 'qw@qw.qw7', password: '123456'},
     {username: 'John', email: 'qw@qw.qw8', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw9', password: '123456'}
+    {username: 'John', email: 'qw@qw.qw9', password: '123456'},
+    {username: 'John', email: 'qw@qw.qw10', password: '123456'}
   ], function(err, users) {
     if (err) throw err;
   });
 
-  // role user pada project tertentu, kecuali admin bisa lintas project, karena sementara admin cuma di permission
+  // role user per project, admin bisa lintas project
   Access.create([
-    {tukangID: 1, projectID: 0, roleKey: "admin"},
-    {tukangID: 1, projectID: 0, roleKey: "createProject"},
-    {tukangID: 1, projectID: 0, roleKey: "findMyProjects"},
+    {tukangID: 1, projectID: 0, roleKey: ["admin"]},
+    {tukangID: 1, projectID: 1, roleKey: ["findProject", "createSprint", "createTask", "teamMember"]},
 
-    {tukangID: 1, projectID: 1, roleKey: "findProject"},
-    {tukangID: 1, projectID: 1, roleKey: "createSprint"},
-    {tukangID: 1, projectID: 1, roleKey: "createTask"},
-    {tukangID: 1, projectID: 1, roleKey: "teamMember"},
+    {tukangID: 1, projectID: 4, roleKey: ["findProject", "teamMember"]},
+    {tukangID: 1, projectID: 6, roleKey: ["findProject"]},
+    {tukangID: 1, projectID: 8, roleKey: ["findProject"]},
 
-    {tukangID: 1, projectID: 4, roleKey: "findProject"},
-    {tukangID: 1, projectID: 4, roleKey: "teamMember"},
-    {tukangID: 1, projectID: 6, roleKey: "findProject"},
-    {tukangID: 1, projectID: 8, roleKey: "findProject"},
+    {tukangID: 2, projectID: 1, roleKey: ["findProject", "createSprint", "createTask", "teamMember"]},
 
-    {tukangID: 2, projectID: 0, roleKey: "findMyProjects"},
-    {tukangID: 2, projectID: 1, roleKey: "findProject"},
-    {tukangID: 2, projectID: 1, roleKey: "createSprint"},
-    {tukangID: 2, projectID: 1, roleKey: "createTask"},
-    {tukangID: 2, projectID: 1, roleKey: "teamMember"},
+    {tukangID: 2, projectID: 4, roleKey: ["findProject"]},
+    {tukangID: 2, projectID: 6, roleKey: ["findProject"]},
 
-    {tukangID: 2, projectID: 4, roleKey: "findProject"},
-    {tukangID: 2, projectID: 6, roleKey: "findProject"},
+    {tukangID: 3, projectID: 1, roleKey: ["findProject"]},
+    {tukangID: 3, projectID: 4, roleKey: ["findProject"]},
 
-    {tukangID: 3, projectID: 0, roleKey: "findMyProjects"},
-    {tukangID: 3, projectID: 1, roleKey: "findProject"},
-    {tukangID: 3, projectID: 4, roleKey: "findProject"},
+    {tukangID: 4, projectID: 6, roleKey: ["findProject"]},
+    {tukangID: 4, projectID: 8, roleKey: ["findProject"]},
+    {tukangID: 5, projectID: 8, roleKey: ["findProject"]},
+    {tukangID: 6, projectID: 8, roleKey: ["findProject"]},
 
-    {tukangID: 4, projectID: 0, roleKey: "findMyProjects"},
-    {tukangID: 4, projectID: 6, roleKey: "findProject"},
-    {tukangID: 4, projectID: 8, roleKey: "findProject"},
-    {tukangID: 5, projectID: 8, roleKey: "findProject"},
-    {tukangID: 6, projectID: 8, roleKey: "findProject"},
+    {tukangID: 7, projectID: 0, roleKey: ["admin"]},
 
-    {tukangID: 7, projectID: 0, roleKey: "admin"},
-    {tukangID: 7, projectID: 0, roleKey: "createProject"},
+    {tukangID: 7, projectID: 2, roleKey: ["findProject", "createSprint", "createTask", "teamMember"]},
 
-    {tukangID: 7, projectID: 2, roleKey: "findProject"},
-    {tukangID: 7, projectID: 2, roleKey: "createSprint"},
-    {tukangID: 7, projectID: 2, roleKey: "createTask"},
-    {tukangID: 7, projectID: 2, roleKey: "teamMember"},
+    {tukangID: 8, projectID: 3, roleKey: ["findProject"]},
+    {tukangID: 9, projectID: 10, roleKey: ["findProject"]},
 
-    {tukangID: 8, projectID: 3, roleKey: "findProject"},
-    {tukangID: 9, projectID: 9, roleKey: "findProject"},
+    {tukangID: 10, projectID: 0, roleKey: ["admin"]},
 
   ], function(err, teams) {
     if (err) throw err;
@@ -82,28 +68,21 @@ module.exports = function(app) {
     if (err) throw err;
   });
 
-  // create group
+  // create group, only for user with at least one paid member/admin
   Group.create([
-    {tukangID: 1, projectID: 1, companyID: 1},
-    {tukangID: 1, projectID: 4, companyID: 1},
-    {tukangID: 1, projectID: 6, companyID: 1},
-    {tukangID: 1, projectID: 8, companyID: 1},
+    {tukangID: 1, projectID: [1, 4, 6, 8], companyID: 1},
 
-    {tukangID: 2, projectID: 1, companyID: 1},
-    {tukangID: 2, projectID: 4, companyID: 1},
-    {tukangID: 2, projectID: 6, companyID: 1},
+    {tukangID: 2, projectID: [1, 4, 6], companyID: 1},
 
-    {tukangID: 3, projectID: 1, companyID: 1},
-    {tukangID: 3, projectID: 4, companyID: 1},
+    {tukangID: 3, projectID: [1, 4], companyID: 1},
 
-    {tukangID: 4, projectID: 6, companyID: 1},
-    {tukangID: 4, projectID: 8, companyID: 1},
-    {tukangID: 5, projectID: 8, companyID: 1},
-    {tukangID: 6, projectID: 8, companyID: 1},
+    {tukangID: 4, projectID: [6, 8], companyID: 1},
+    {tukangID: 5, projectID: [8], companyID: 1},
+    {tukangID: 6, projectID: [8], companyID: 1},
 
-    {tukangID: 7, projectID: 2, companyID: 2},
-    {tukangID: 8, projectID: 3, companyID: 2},
-    {tukangID: 9, projectID: 9, companyID: 2}
+    {tukangID: 7, projectID: [2], companyID: 2},
+    {tukangID: 8, projectID: [3], companyID: 2},
+    {tukangID: 8, projectID: [9], companyID: 2}
   ], function(err, teams) {
     if (err) throw err;
   });
