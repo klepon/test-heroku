@@ -15,6 +15,12 @@
     },
     "hash": {
       "type": "string"
+    },
+    "lang": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
     }
   },
   "validations": [],

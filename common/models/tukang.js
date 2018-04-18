@@ -1,30 +1,44 @@
 'use strict';
 const md5 = require('md5');
 const sendMail = require('../../server/_send-email.js');
-
-const msg = `asas
-<p>asasas</p>asasasas
-<strong>asasas</strong>`;
-sendMail('bugs1945@gmail.com', ['bugs1945@gmail.com'], "Fred Foo 👻", msg, 'plain text message');
+const lang = require('../../server/_static-lang.js');
+const CONST = require('../../server/_static-const.js');
 
 module.exports = function(Tukang) {
-  // before register add hash, ie:
+  // before register add hash and send email verification
   Tukang.beforeRemote('create', function(ctx, user, next) {
+    const hash = md5(md5(`${ctx.args.data.email} ${ctx.args.data.password} ${Math.random()}`));
+    const emailMessage = lang.verifiedEmailBodyText[ctx.args.data.lang]
+      .replace(/#~hash#/g, hash)
+      .replace(/#~domain#/g, CONST.emailVerificationUrl)
+      .replace(/#~lang#/g, ctx.args.data.lang);
+
     ctx.args.data = {
       "discipline": "",
       "name": "",
       "realm": "",
-      "hash": md5(md5(`${ctx.args.data.email} ${ctx.args.data.password} ${Math.random()}`)),
+      hash,
+      "lang": ctx.args.data.lang,
       "username": ctx.args.data.email,
       "email": ctx.args.data.email,
       "password": ctx.args.data.password,
       "emailVerified": false
     }
 
+    // send email
+    // console.log('====================================== emailMessage: ', emailMessage.replace(/<br \/>/g, '\n'));
+    // console.log('====================================== ctx.args.data: ', ctx.args.data);
+    sendMail(
+      'noreplay@ojual.com',
+      ['bugs1945@gmail.com'],
+      lang.verifiedEmailSubjectText[ctx.args.data.lang],
+      emailMessage
+    );
+
     next();
   });
 
-  // after register, remove some data
+  // after register, return only id
   Tukang.afterRemote('create', function(ctx, user, next) {
     ctx.result = {
       "id": ctx.result.id,
