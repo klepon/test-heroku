@@ -1,28 +1,30 @@
 'use strict';
 const md5 = require('md5');
 const sendMail = require('../../server/_send-email.js');
-const lang = require('../../server/_static-lang.js');
+const langData = require('../../server/_static-lang.js');
 const CONST = require('../../server/_static-const.js');
 
 module.exports = function(Tukang) {
   // before register add hash and send email verification
   Tukang.beforeRemote('create', function(ctx, user, next) {
     const hash = md5(md5(`${ctx.args.data.email} ${ctx.args.data.password} ${Math.random()}`));
-    const emailMessage = lang.verifiedEmailBodyText[ctx.args.data.lang]
+    const lang = ctx.args.data.lang !== undefined ? ctx.args.data.lang : 'en';
+    const emailMessage = langData.verifiedEmailBodyText[lang]
       .replace(/#~hash#/g, hash)
       .replace(/#~domain#/g, CONST.emailVerificationUrl)
-      .replace(/#~lang#/g, ctx.args.data.lang);
+      .replace(/#~lang#/g, lang);
 
     ctx.args.data = {
       "discipline": "",
       "name": "",
       "realm": "",
       hash,
-      "lang": ctx.args.data.lang,
+      lang,
       "username": ctx.args.data.email,
       "email": ctx.args.data.email,
       "password": ctx.args.data.password,
-      "emailVerified": false
+      "emailVerified": false,
+      "date": Date.now()
     }
 
     // send email
@@ -31,7 +33,7 @@ module.exports = function(Tukang) {
     sendMail(
       'noreplay@ojual.com',
       ['bugs1945@gmail.com'],
-      lang.verifiedEmailSubjectText[ctx.args.data.lang],
+      langData.verifiedEmailSubjectText[lang],
       emailMessage
     );
 
@@ -46,110 +48,79 @@ module.exports = function(Tukang) {
     next();
   });
 
-  // on get data, include access, group, company data
-  // Tukang.afterRemote('findById', function(ctx, user, next) {
-  //   if(ctx.result) {
-  //     // is user have access createProject
-  //     const getAccess = () => {
-  //       return new Promise((resolve, reject) => {
-  //         Tukang.app.models.Access.find({
-  //           fields: {
-  //             roleKey: true
-  //           },
-  //           where: {
-  //             tukangID: ctx.result.id
-  //           }
-  //         }, function(err, rs) {
-  //           const o = {
-  //             createProject : false,
-  //             admin: false
-  //           };
-  //
-  //           if (rs) {
-  //             rs.map(access => {
-  //               if(access.roleKey === 'admin') o['admin'] = true;
-  //               if(access.roleKey === 'createProject') o['createProject'] = true;
-  //               return true;
-  //             });
-  //           }
-  //
-  //           resolve(o);
-  //           reject(o)
-  //         });
-  //       });
-  //     };
-  //
-  //     // get user company
-  //     const getCompany = () => {
-  //       return new Promise((resolve, reject) => {
-  //         Tukang.app.models.Group.find({
-  //           fields: {
-  //             companyID: true
-  //           },
-  //           where: {
-  //             tukangID: ctx.result.id
-  //           }
-  //         }, function(err, group) {
-  //           let o = {name : ''};
-  //
-  //           console.log('=== group: ', group);
-  //
-  //           if (group.length > 0) {
-  //             Tukang.app.models.Company.find({
-  //               where: {
-  //                 id: group[0].companyID
-  //               }
-  //             }, function(err, rs) {
-  //               if (rs) {
-  //                 o = rs[0];
-  //               }
-  //
-  //               resolve(o);
-  //               reject(o)
-  //             });
-  //           } else {
-  //             resolve(o);
-  //             reject(o)
-  //           }
-  //         });
-  //       });
-  //     };
-  //
-  //     // add access and company to user object
-  //     const getUserData = async () => {
-  //       const access = await getAccess();
-  //       const company = await getCompany();
-  //
-  //       ctx.result.access = access;
-  //       ctx.result.company = company;
-  //       next();
-  //     };
-  //
-  //     getUserData();
-  //
-  //   } else {
-  //     next();
-  //   }
-  //
-  // });
+  // before login
+  Tukang.beforeRemote('login', function(ctx, user, next) {
+    // delete all expired unverified user
+    const secondInDays = 86400;
+    Tukang.destroyAll({and: [
+      {date: {lt: (Date.now() - secondInDays * 3)}},
+      {hash: {neq: ''}}
+    ]}, function (err, instance) {
+      next();
+    });
+  });
 
-  // ini tester dan sudah bisa, perlu add di tukang.jason allow owner getName
-  // Tukang.getName = function(shopId, cb) {
-  //   Tukang.findById( shopId, function (err, instance) {
-  //     var response = "Name of coffee shop is " + instance.name;
-  //     cb(null, response);
-  //     console.log(response);
-  //   });
-  // }
-  //
-  // Tukang.remoteMethod (
-  //   'getName',
-  //   {
-  //     http: {path: '/getname', verb: 'get'},
-  //     accepts: {arg: 'id', type: 'number', http: { source: 'query' } },
-  //     returns: {arg: 'name', type: 'string'}
-  //   }
-  // );
+  // after login
+  Tukang.afterRemote('login', function(ctx, user, next) {
+    // is email verified
+    if (user.userId !== undefined) {
+      Tukang.findById(user.userId,
+      function (err, instance) {
+        if (instance !== null && !instance.emailVerified) {
+          ctx.result = {
+            error: {
+              status: 401,
+              message: 'email not verified'
+            }
+          }
+        }
+
+        next();
+      });
+    }
+  });
+
+  // validating hash
+  Tukang.isVerified = function(hash, cb) {
+    Tukang.find({
+      where: {
+        hash: hash
+      },
+      limit: 2
+    }, function (err, instance) {
+      if (err || instance === null || instance.length !== 1) {
+        cb(null, false);
+        return;
+      }
+
+      // if verified, update hash and verified
+      if (instance.length === 1 && instance[0].id !== null) {
+        const newData = instance[0];
+        newData['hash'] = '';
+        newData['emailVerified'] = true;
+
+        Tukang.replaceById(instance[0].id,
+          newData,
+          { validate: true },
+          function (err, instance) {
+            if (err || instance === null) {
+              cb(null, false);
+              return;
+            }
+
+            cb(null, true);
+          });
+      }
+    });
+  }
+  Tukang.remoteMethod (
+    'isVerified',
+    {
+      http: {path: '/verified', verb: 'get'},
+      accepts: {arg: 'hash', type: 'string', http: { source: 'query' } },
+      returns: {arg: 'verified', type: 'boolean'}
+    }
+  );
 
   //   Project.beforeRemote( '*', function( ctx, modelInstance, next) {
   //     console.log(ctx);

@@ -11,16 +11,16 @@ module.exports = function(app) {
   var Group = app.models.group;
 
   Tukang.create([
-    {username: 'John', email: 'qw@qw.qw', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw2', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw3', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw4', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw5', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw6', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw7', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw8', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw9', password: '123456'},
-    {username: 'John', email: 'qw@qw.qw10', password: '123456'}
+    {username: 'John', email: 'qw@qw.qw', password: '123456', date: Date.now(), hash: '', emailVerified: true},
+    {username: 'John1', email: 'qw@qw.qw1', password: '123456', date: Date.now() - 269200, hash: '8a90497b2b05d6f80ebb6332855f849f', emailVerified: false},
+    {username: 'John2', email: 'qw@qw.qw2', password: '123456', date: Date.now() - 359200, hash: '', emailVerified: true},
+    {username: 'John3', email: 'qw@qw.qw3', password: '123456', date: Date.now() - 219200, hash: '8a90497b2b05d6f80ebb6332855f8491', emailVerified: false},
+    {username: 'John4', email: 'qw@qw.qw4', password: '123456', date: Date.now() - 312200, hash: '8a90497b2b05d6f80ebb6332855f8492', emailVerified: false},
+    {username: 'John5', email: 'qw@qw.qw5', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8493', emailVerified: false},
+    {username: 'John6', email: 'qw@qw.qw6', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8494', emailVerified: false},
+    {username: 'John7', email: 'qw@qw.qw7', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8495', emailVerified: true},
+    {username: 'John8', email: 'qw@qw.qw8', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8496', emailVerified: false},
+    {username: 'John9', email: 'qw@qw.qw9', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8497', emailVerified: false}
   ], function(err, users) {
     if (err) throw err;
   });
@@ -148,7 +148,7 @@ module.exports = function(app) {
           if (err) throw err;
         });
 
-        console.log('======= tukang - note created');
+        console.log('======= data sample created ====== debug ready ====>');
 
       });
     });
