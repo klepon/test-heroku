@@ -16,7 +16,7 @@
     },
     "projectID": {
       "type": "array",
-      "required": true
+      "required": false
     }
   },
   "validations": [],

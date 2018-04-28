@@ -4,6 +4,81 @@ const sendMail = require('../../server/_send-email.js');
 const langData = require('../../server/_static-lang.js');
 const CONST = require('../../server/_static-const.js');
 
+const log = (label, data) => {
+  return;
+  if (data === undefined) {
+    console.log(`\n* ======== ${label} ======== *`);
+  } else {
+    console.log(`======== ${label}:\n`, data);
+  }
+};
+
+// get comapny id in group table by userId
+const getCompanyID = ({ models, userId, callback, errorCallback = () => {} } = params) => {
+  log("getCompanyID userId", userId);
+
+  models.Group.find({
+    where: {
+      tukangID: userId
+    }
+  }, function(err, instance) {
+    log("getCompanyID instance", instance);
+
+    if (instance !== null && instance.length > 0) {
+      callback(instance[0].companyID);
+    } else {
+      errorCallback();
+
+      // models.Group.find({
+      // }, function(err, instance) {
+      //   log("getCompanyID instance 2", instance);
+      // });
+    }
+  });
+};
+
+// get companyName
+const getCompanyName = ({ models, companyID, callback, errorCallback = () => {} } = params) => {
+  models.Company.findById(companyID,
+    function(err, instance) {
+      if (instance !== null) {
+        callback(instance);
+      } else {
+        errorCallback(err);
+      }
+    });
+};
+
+// get access
+const getUserAccess = ({ models, userId, callback, errorCallback = () => {} } = params) => {
+  models.Access.find({
+    where: {
+      tukangID: userId
+    }
+  }, function(err, instance) {
+    if (instance !== null && instance.length > 0) {
+      callback(instance);
+    } else {
+      errorCallback(err);
+    }
+  });
+};
+
+// isAdmin
+const isAdmin = ({ models, userId, callback, errorCallback = () => {} } = params) => {
+  getUserAccess({ models, userId,
+    callback: (instance) => {
+      for (let i = 0; i < instance.length; i++) {
+        if (instance[i].projectID === 0 && instance[i].roleKey[0] === 'admin') {
+          return callback(true);
+        }
+      }
+      callback(false);
+    },
+    errorCallback
+  })
+}
+
 module.exports = function(Tukang) {
   // before register add hash and send email verification
   Tukang.beforeRemote('create', function(ctx, user, next) {
@@ -28,8 +103,8 @@ module.exports = function(Tukang) {
     }
 
     // send email
-    // console.log('====================================== emailMessage: ', emailMessage.replace(/<br \/>/g, '\n'));
-    // console.log('====================================== ctx.args.data: ', ctx.args.data);
+    // log("emailMessage: ", emailMessage.replace(/<br \/>/g, '\n'));
+    // log("ctx.args.data: ", ctx.args.data);
     sendMail(
       'noreplay@ojual.com',
       ['bugs1945@gmail.com'],
@@ -62,23 +137,223 @@ module.exports = function(Tukang) {
 
   // after login
   Tukang.afterRemote('login', function(ctx, user, next) {
+    log("afterRemote login");
+
     // is email verified
     if (user.userId !== undefined) {
       Tukang.findById(user.userId,
-      function (err, instance) {
-        if (instance !== null && !instance.emailVerified) {
-          ctx.result = {
-            error: {
-              status: 401,
-              message: 'email not verified'
+        function (err, userData) {
+          if (userData !== null && !userData.emailVerified) {
+            ctx.result = {
+              error: {
+                status: 401,
+                message: 'email not verified'
+              }
             }
+
+            next();
+          } else {
+            let access = {};
+            let company = {}; //id, name
+            let hashGroup = false;
+
+            // generate json result
+            const generateResult = () => {
+              ctx.result = {
+                id: user.userId,
+                name: userData.name === undefined ? '' : userData.name,
+                discipline: userData.discipline === undefined ? '' : userData.discipline,
+                email: ctx.args.credentials.email,
+                token: user.id,
+                access,
+                company,
+                hashGroup,
+              }
+              next();
+            }
+
+            // get company detail by id
+            const getCompany = (companyID) => {
+              getCompanyName({ models: Tukang.app.models, companyID,
+                callback: (instance) => {
+                  company = instance;
+                  generateResult();
+                },
+                errorCallback: () => {
+                  generateResult();
+                }
+              });
+            };
+
+            // get group by userId
+            const getGroup = () => {
+              getCompanyID({ models: Tukang.app.models, userId: user.userId,
+                callback: (companyID) => {
+                  hashGroup = true;
+                  getCompany(companyID);
+                },
+                errorCallback: () => {
+                  generateResult();
+                }
+              });
+            };
+
+            // get access -> get hasGroup -> get company name
+            getUserAccess({ models: Tukang.app.models, userId: user.userId,
+              callback: (instance) => {
+                log("getUserAccess instance", instance);
+
+                for (let i = 0; i < instance.length; i++) {
+                  access[instance[i].projectID] = instance[i].roleKey;
+                }
+                getGroup();
+              },
+              errorCallback: () => {
+                log("getUserAccess errorCallback");
+                generateResult();
+              }
+            });
           }
+        });
+    }
+  });
+
+  // before updateByID, remove company from user, update company data
+  Tukang.beforeRemote('replaceById', function(ctx, user, next) {
+    log("beforeRemote replaceById");
+
+    // save company and remove form arguments
+    const companyName = ctx.args.data.company;
+    delete ctx.args.data.company;
+
+    // generate user data
+    const generateUserDataToRecord = () => {
+      // log("ctx.args before", ctx.args);
+
+      Tukang.findById(ctx.args.options.accessToken.userId, function(err, instance){
+        // log("instance", instance);
+
+        if (instance !== null) {
+          ctx.args.data.discipline = ctx.args.data.discipline;
+          ctx.args.data.name = ctx.args.data.name;
+          ctx.args.data.hash = instance.hash;
+          ctx.args.data.lang = instance.lang || '';
+          ctx.args.data.date = instance.date;
+
+          ctx.args.data.username = instance.username;
+          ctx.args.data.email = instance.email;
+          ctx.args.data.emailVerified = instance.emailVerified;
+          // ctx.args.data.password = ctx.args.data.password;
+
+          // log("ctx.args after", ctx.args);
         }
 
         next();
       });
     }
+
+    /* update company name if admin; get access is admin -> get company id from group -> update company */
+    // update company
+    const updateCompany = (companyID) => {
+      Tukang.app.models.Company.replaceById(companyID,
+        { name: companyName },
+        { validate: true }, // perform validate before saving, default is true
+        function (err, instance) {
+          generateUserDataToRecord();
+        });
+    }
+
+    // get company id from group
+    const getCompanyId = () => {
+      getCompanyID({ models: Tukang.app.models, userId: ctx.args.id,
+        callback: (companyID) => {
+          log("Company companyID", companyID);
+
+          updateCompany(companyID);
+        },
+        errorCallback: () => {
+          // no company found, add one
+          Tukang.app.models.Company.create({name: companyName}, function(err, company) {
+            log("Company company", company);
+
+            Tukang.app.models.Group.create({
+              tukangID: ctx.args.id,
+              projectID: [],
+              companyID: company.id
+            }, function(err, group) {
+              log("Group group", group);
+
+              generateUserDataToRecord();
+            });
+          });
+        }
+      });
+    }
+
+    // get access data
+    const getAccess = () => {
+      isAdmin({ models: Tukang.app.models, userId: ctx.args.options.accessToken.userId,
+        callback: (admin) => {
+          if (admin) {
+            getCompanyId();
+          } else {
+            generateUserDataToRecord();
+          }
+        },
+        errorCallback: () => {
+          generateUserDataToRecord();
+        }
+      });
+    }
+
+    // check user password
+    Tukang.login({
+      email: ctx.args.data.email,
+      password: ctx.args.data.password
+    }, function(err, instance) {
+      if (instance && instance.userId > 0) {
+        getAccess();
+      } else {
+        next(err);
+      }
+    });
+
   });
+
+  // after updateByID
+  Tukang.afterRemote('replaceById', function(ctx, user, next) {
+    log("afterRemote replaceById");
+
+    log("afterRemote replaceById ctx.args", ctx.args);
+
+    // Tukang.findById(ctx.args.options.accessToken.userId, function(err, instance){
+    //   log("instance", instance);
+    // });
+
+    // find companyID and then name
+    getCompanyID({ models: Tukang.app.models, userId: ctx.args.id,
+      callback: (companyID) => {
+        getCompanyName({ models: Tukang.app.models, companyID,
+          callback: (instance) => {
+            ctx.result.company = instance
+            next();
+          },
+          errorCallback: () => {
+            next();
+          }
+        });
+      },
+      errorCallback: () => {
+        next();
+      }
+    });
+  });
+
+  // // after remove error
+  // Tukang.afterRemoteError('replaceById', function(ctx, next) {
+  //   log("error ctx.result", ctx.result);
+  //   next()
+  // });
 
   // validating hash
   Tukang.isVerified = function(hash, cb) {
@@ -101,7 +376,7 @@ module.exports = function(Tukang) {
 
         Tukang.replaceById(instance[0].id,
           newData,
-          { validate: true },
+          { validate: true }, // perform validate before saving, default is true
           function (err, instance) {
             if (err || instance === null) {
               cb(null, false);
@@ -122,13 +397,7 @@ module.exports = function(Tukang) {
     }
   );
 
-  //   Project.beforeRemote( '*', function( ctx, modelInstance, next) {
-  //     console.log(ctx);
-  //     console.log(modelInstance);
-  //     console.log('masuk project');
-  //     next();
-  // });
-
+  // disable remote
   Tukang.disableRemoteMethodByName("prototype.__delete__projects");   // disbale delete all projects
   Tukang.disableRemoteMethodByName("prototype.__delete__teams");   // disbale delete all teams
 

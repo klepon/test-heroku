@@ -20,7 +20,7 @@ module.exports = function(app) {
     {username: 'John6', email: 'qw@qw.qw6', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8494', emailVerified: false},
     {username: 'John7', email: 'qw@qw.qw7', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8495', emailVerified: true},
     {username: 'John8', email: 'qw@qw.qw8', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8496', emailVerified: false},
-    {username: 'John9', email: 'qw@qw.qw9', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8497', emailVerified: false}
+    {username: 'John9', email: 'qw@qw.qw9', password: '123456', date: Date.now(), hash: '', emailVerified: true}
   ], function(err, users) {
     if (err) throw err;
   });
@@ -82,7 +82,8 @@ module.exports = function(app) {
 
     {tukangID: 7, projectID: [2], companyID: 2},
     {tukangID: 8, projectID: [3], companyID: 2},
-    {tukangID: 8, projectID: [9], companyID: 2}
+    // {tukangID: 10, projectID: [], companyID: 2},
+    {tukangID: 9, projectID: [9], companyID: 2}
   ], function(err, teams) {
     if (err) throw err;
   });
