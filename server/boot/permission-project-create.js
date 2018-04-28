@@ -20,9 +20,9 @@ module.exports = function(app) {
 
       // console.log("======================================= auth disabled lo =======================================");
       // do not allow anonymous users
-      // if (!context.accessToken.userId) {
-      //   return reject();
-      // }
+      if (!context.accessToken.userId) {
+        return reject();
+      }
 
       // limit 1 except has access roleKey admin or in a company
       app.models.Access.find({
