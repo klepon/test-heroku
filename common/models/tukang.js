@@ -314,6 +314,7 @@ module.exports = function(Tukang) {
       if (instance && instance.userId > 0) {
         getAccess();
       } else {
+        err.message = 'Invalid password.';
         next(err);
       }
     });
@@ -354,6 +355,32 @@ module.exports = function(Tukang) {
   //   log("error ctx.result", ctx.result);
   //   next()
   // });
+
+  // before deleteByID
+  Tukang.beforeRemote('deleteById', function(ctx, user, next) {
+    // log('beforeRemote deleteById ctx.args', ctx.args);
+    // log('beforeRemote deleteById ctx.req.body', ctx.req.body);
+
+    // let err = new Error();
+    // err.statusCode = 401;
+    // err.message = 'Invalid password.';
+    // next(err);
+
+    Tukang.login({
+      email: ctx.req.body.email,
+      password: ctx.req.body.password
+    }, function(err, instance) {
+      log('beforeRemote login err', err);
+      log('beforeRemote login instance', instance);
+
+      if (instance && instance.userId > 0) {
+        next();
+      } else {
+        err.message = 'Invalid password.';
+        next(err);
+      }
+    });
+  });
 
   // validating hash
   Tukang.isVerified = function(hash, cb) {

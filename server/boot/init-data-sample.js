@@ -14,7 +14,7 @@ module.exports = function(app) {
     {username: 'John', email: 'qw@qw.qw', password: '123456', date: Date.now(), hash: '', emailVerified: true},
     {username: 'John1', email: 'qw@qw.qw1', password: '123456', date: Date.now() - 269200, hash: '8a90497b2b05d6f80ebb6332855f849f', emailVerified: false},
     {username: 'John2', email: 'qw@qw.qw2', password: '123456', date: Date.now() - 359200, hash: '', emailVerified: true},
-    {username: 'John3', email: 'qw@qw.qw3', password: '123456', date: Date.now() - 219200, hash: '8a90497b2b05d6f80ebb6332855f8491', emailVerified: false},
+    {username: 'John3', email: 'qw@qw.qw3', password: '123456', date: Date.now() - 219200, hash: '', emailVerified: true},
     {username: 'John4', email: 'qw@qw.qw4', password: '123456', date: Date.now() - 312200, hash: '8a90497b2b05d6f80ebb6332855f8492', emailVerified: false},
     {username: 'John5', email: 'qw@qw.qw5', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8493', emailVerified: false},
     {username: 'John6', email: 'qw@qw.qw6', password: '123456', date: Date.now(), hash: '8a90497b2b05d6f80ebb6332855f8494', emailVerified: false},
@@ -76,7 +76,7 @@ module.exports = function(app) {
 
     {tukangID: 3, projectID: [1, 4], companyID: 1},
 
-    {tukangID: 4, projectID: [6, 8], companyID: 1},
+    // {tukangID: 4, projectID: [6, 8], companyID: 1},
     {tukangID: 5, projectID: [8], companyID: 1},
     {tukangID: 6, projectID: [8], companyID: 1},
 
