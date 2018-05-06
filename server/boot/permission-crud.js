@@ -1,6 +1,16 @@
 const modelPermissions = require('../_static-permissions.js');
 
+const log = (label, data, inline) => {
+  return;
+  if (data === undefined) {
+    console.log(`\n\n* ==== permission-crud.js ==================== ${label} ======================== *`);
+  } else {
+    console.log(`==== permission-crud.js ==================== ${label}:${inline ? '' : '\n'}`, data);
+  }
+};
+
 module.exports = function(app) {
+  const MODEL_ANCESTOR = 'ancestor';
   const MODEL_PROJECT = 'project';
   const MODEL_SPRINT = 'sprint';
   const MODEL_TASK = 'task';
@@ -10,37 +20,31 @@ module.exports = function(app) {
     note: MODEL_TASK,
     task: MODEL_SPRINT,
     sprint: MODEL_PROJECT,
-    project: false
+    project: MODEL_ANCESTOR
   };
 
+  // return 0: new project, projectID: has access, -1: no access
   const getProjectId = (model, parentID, contextID, callback) => {
-    // if current model is project
-    if (!parentMapping[model]) {
-      // console.log('================================================== masuk ancestor');
-      callback(contextID); // it is top ancester
-      return;
-    }
-
-    // get project id (has permission) or 0 (no permission)
+    const noPermision = -1;
     switch (parentMapping[model]) {
       case MODEL_TASK:
-        // console.log("================================================== masuk task");
+        // log("masuk task");
         app.models.Task.findById(parentID, function(err, task) {
           if (err || task === null) {
-            callback(0);
+            callback(noPermision);
           }
-          // console.log("================================================== ada task parent");
+          // log("ada task parent");
           getProjectId(MODEL_TASK, task.parentID, 0, callback);
         });
 
         break;
       case MODEL_SPRINT:
-        // console.log("================================================== masuk sprint");
+        // log("masuk sprint");
         app.models.Sprint.findById(parentID, function(err, sprint) {
           if (err || sprint === null) {
-            callback(0);
+            callback(noPermision);
           }
-          // console.log("================================================== ada sprint parent:", sprint.parentID);
+          // log("ada sprint parent:", sprint.parentID, true);
           callback(sprint.parentID);
         });
 
@@ -49,9 +53,14 @@ module.exports = function(app) {
         callback(parentID);
 
         break;
+      case MODEL_ANCESTOR: // return requested id: 0 or id
+        log('masuk ancestor');
+        callback(contextID);
+
+        break;
       default:
-        // console.log('================================================== masuk default');
-        callback(0);
+        log('masuk default');
+        callback(noPermision);
     }
   };
 
@@ -62,11 +71,16 @@ module.exports = function(app) {
 
     // handle permissions
     app.models.Role.registerResolver(roleObj.roleKey, function(role, context, cb) {
-      function reject() {
+      function reject(from) {
+
+        log('reject', from, true);
+
         process.nextTick(function() {
           cb(null, false);
         });
       }
+
+      log('masuk crud permissions roleObj.roleKey: ', roleObj.roleKey, true);
 
       // define contextID and parentID
       const contextID = context.modelId === undefined ? 0 : context.modelId;
@@ -81,34 +95,45 @@ module.exports = function(app) {
         }
       }
 
-      // console.log(modelName);
-
+      // log('modelName', modelName, true);
       if (context.modelName !== modelName) {
-        return reject();
+        return reject('context.modelName !== modelName');
       }
 
       // if has parent and parentID == 0 => reject
-      if(parentMapping[modelName] && parentID === 0) {
-        return reject();
+      if(parentMapping[modelName] !== MODEL_ANCESTOR && parentID === 0) {
+        return reject('parentMapping[modelName] && parentID === 0');
       }
 
       // do not allow anonymous users
       if (!context.accessToken.userId) {
-        return reject();
+        return reject('!context.accessToken.userId');
       }
 
       // if user have roleObj.roleKey
       getProjectId(modelName, parentID, contextID, function(projectID){
 
-        // console.log('masuk callback projectID: ', projectID);
+        log('masuk callback projectID: ', projectID, true);
+
+        // if projectID === 0, mean it create project, let it go
+        if (projectID === 0) {
+          cb(null, true);
+          return;
+        }
+
+        if (projectID === -1) {
+          return reject('projectID === -1');
+        }
 
         app.models.Access.count({
           tukangID: context.accessToken.userId,
-          projectID: projectID,
           roleKey: roleObj.roleKey
         }, function(err, count) {
+
+          log('app.models.Access.find instance', count, true);
+
           if (err) {
-            return reject();
+            return reject('err');
           }
 
           cb(null, count > 0); // true = has permission

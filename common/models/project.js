@@ -1,6 +1,14 @@
 'use strict';
-
 const modelPermissions = require('../../server/_static-permissions.js');
+
+const log = (label, data, inline) => {
+  return;
+  if (data === undefined) {
+    console.log(`\n* ==== project.js ==================== ${label} ======================== *`);
+  } else {
+    console.log(`==== project.js ==================== ${label}:${inline ? '' : '\n'}`, data);
+  }
+};
 
 module.exports = function(Project) {
   /* ======= create ======== */
@@ -16,7 +24,7 @@ module.exports = function(Project) {
       tukangID: ctx.args.options.accessToken.userId,
       projectID: model.id,
       roleKey: modelPermissions.filter(i => {
-        if(i.type === undefined) {
+        if(i.type === undefined) { // for unpaid user
           return true;
         }
       }).map(i => i.roleKey)
@@ -28,14 +36,14 @@ module.exports = function(Project) {
   /* ======= find ======== */
   // allowed to find all project in company if any but only can see detail of assigned project, handle in afterRemote
   Project.beforeRemote('find', function(ctx, model, next) {
-    function noProjectAllowed() {
+    function ownProjectOnly() {
       ctx.args.filter = {
         where: {
-          id: 0
+          ownerID: ctx.args.options.accessToken.userId
         }
       };
+      log('find - ownProjectOnly - ctx.args.filter:', ctx.args.filter);
       next();
-      // console.log('===== find - noProjectAllowed - ctx.args:', ctx.args);
     }
 
     function returnProjectIds(data) {
@@ -47,67 +55,30 @@ module.exports = function(Project) {
             }
           }
         };
+        log('find - returnProjectIds - ctx.args.filter', ctx.args.filter);
         next();
       } else {
-        noProjectAllowed()
+        ownProjectOnly()
       }
-      // console.log('===== find - returnProjectIds - ctx.args:', ctx.args);
     }
 
-    function getProjectByCompany(companyID) {
-      Project.app.models.Group.find({
-        fields: {
-          projectID: true
-        },
-        where: {
-          companyID
-        }
-      }, function(err, rs) {
-        if (err || rs.length === 0) {
-          noProjectAllowed();
-        }
+    log('masuk project.js find');
 
-        returnProjectIds(rs)
-      });
-    }
-
-    // if no user token, return empty result
-    if (ctx.args.options.accessToken === null) {
-      noProjectAllowed();
-    }
-
-    // if user token exist, find allowed project ids
+    // find allowed project ids
     if (ctx.args.options.accessToken !== null) {
-      // find all projects by access
       Project.app.models.Access.find({
-        fields: {
-          projectID: true
-        },
         where: {
           tukangID: ctx.args.options.accessToken.userId
         }
-      }, function(err, rs) {
-        if(err || rs.length === 0) {
-          noProjectAllowed();
-        }
+      }, function(err, instance) {
 
-        // find companyID
-        Project.app.models.Group.find({
-          fields: {
-            companyID: true
-          },
-          where: {
-            projectID: {
-              inq: rs.map(i => i.projectID),
-            }
-          }
-        }, function(err, group) {
-          if(err || group.length === 0) { // if no company profile === free user project
-            returnProjectIds(rs);
-          } else { // if companyID found
-            getProjectByCompany(group[0].companyID);
-          }
-        });
+        log('access instance', instance);
+
+        if(err || instance.length === 0) {
+          ownProjectOnly();
+        } else {
+          returnProjectIds(instance);
+        }
       });
     }
   });

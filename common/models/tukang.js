@@ -7,9 +7,9 @@ const CONST = require('../../server/_static-const.js');
 const log = (label, data) => {
   return;
   if (data === undefined) {
-    console.log(`\n* ======== ${label} ======== *`);
+    console.log(`\n* ==== tukang.js ==================== ${label} ======================== *`);
   } else {
-    console.log(`======== ${label}:\n`, data);
+    console.log(`==== tukang.js ==================== ${label}:\n`, data);
   }
 };
 
@@ -28,11 +28,6 @@ const getCompanyID = ({ models, userId, callback, errorCallback = () => {} } = p
       callback(instance[0].companyID);
     } else {
       errorCallback();
-
-      // models.Group.find({
-      // }, function(err, instance) {
-      //   log("getCompanyID instance 2", instance);
-      // });
     }
   });
 };
@@ -56,8 +51,20 @@ const getUserAccess = ({ models, userId, callback, errorCallback = () => {} } = 
       tukangID: userId
     }
   }, function(err, instance) {
+
+    log('getUserAccess instance', instance);
+
     if (instance !== null && instance.length > 0) {
-      callback(instance);
+      let access = {}
+      for (let i = 0; i < instance.length; i++) {
+        if (access[instance[i].projectID] === undefined) {
+          access[instance[i].projectID] = [];
+        }
+
+        access[instance[i].projectID].push(instance[i].roleKey)
+      }
+      callback(access);
+      // callback(instance);
     } else {
       errorCallback(err);
     }
@@ -203,9 +210,7 @@ module.exports = function(Tukang) {
               callback: (instance) => {
                 log("getUserAccess instance", instance);
 
-                for (let i = 0; i < instance.length; i++) {
-                  access[instance[i].projectID] = instance[i].roleKey;
-                }
+                access = instance;
                 getGroup();
               },
               errorCallback: () => {

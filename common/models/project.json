@@ -43,7 +43,7 @@
     },
     {
       "principalType": "ROLE",
-      "principalId": "findMyProjects",
+      "principalId": "findProject",
       "permission": "ALLOW",
       "property": "find"
     },

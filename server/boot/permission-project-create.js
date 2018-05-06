@@ -1,5 +1,7 @@
 const modelPermissions = require('../_static-permissions.js');
 
+// perlu dirombak sesuai flowcart
+
 module.exports = function(app) {
   for(const roleObj of modelPermissions) {
     // only for createProject
