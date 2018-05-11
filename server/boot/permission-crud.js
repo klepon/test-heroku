@@ -1,4 +1,5 @@
 const modelPermissions = require('../_static-permissions.js');
+const isAdmin = require('../lib/is-admin.js');
 
 const log = (label, data, inline) => {
   return;
@@ -125,19 +126,14 @@ module.exports = function(app) {
           return reject('projectID === -1');
         }
 
-        app.models.Access.count({
-          tukangID: context.accessToken.userId,
-          roleKey: roleObj.roleKey
-        }, function(err, count) {
-
-          log('app.models.Access.find instance', count, true);
-
-          if (err) {
-            return reject('err');
+        isAdmin({ models: app.models, userId: context.accessToken.userId,
+          callback: (admin) => {
+            cb(null, admin); // true / false
+          },
+          errorCallback: (err) => {
+            reject('err');
           }
-
-          cb(null, count > 0); // true = has permission
-        });
+        }, 'tukang.js');
       });
     });
   }

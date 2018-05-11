@@ -3,6 +3,7 @@ const md5 = require('md5');
 const sendMail = require('../../server/_send-email.js');
 const langData = require('../../server/_static-lang.js');
 const CONST = require('../../server/_static-const.js');
+const isAdmin = require('../../server/lib/is-admin.js');
 
 const log = (label, data) => {
   return;
@@ -15,7 +16,7 @@ const log = (label, data) => {
 
 // get comapny id in group table by userId
 const getCompanyID = ({ models, userId, callback, errorCallback = () => {} } = params) => {
-  log("getCompanyID userId", userId);
+  log("getCompanyID userId", userId, true);
 
   models.Group.find({
     where: {
@@ -43,48 +44,6 @@ const getCompanyName = ({ models, companyID, callback, errorCallback = () => {} 
       }
     });
 };
-
-// get access
-const getUserAccess = ({ models, userId, callback, errorCallback = () => {} } = params) => {
-  models.Access.find({
-    where: {
-      tukangID: userId
-    }
-  }, function(err, instance) {
-
-    log('getUserAccess instance', instance);
-
-    if (instance !== null && instance.length > 0) {
-      let access = {}
-      for (let i = 0; i < instance.length; i++) {
-        if (access[instance[i].projectID] === undefined) {
-          access[instance[i].projectID] = [];
-        }
-
-        access[instance[i].projectID].push(instance[i].roleKey)
-      }
-      callback(access);
-      // callback(instance);
-    } else {
-      errorCallback(err);
-    }
-  });
-};
-
-// isAdmin
-const isAdmin = ({ models, userId, callback, errorCallback = () => {} } = params) => {
-  getUserAccess({ models, userId,
-    callback: (instance) => {
-      for (let i = 0; i < instance.length; i++) {
-        if (instance[i].projectID === 0 && instance[i].roleKey[0] === 'admin') {
-          return callback(true);
-        }
-      }
-      callback(false);
-    },
-    errorCallback
-  })
-}
 
 module.exports = function(Tukang) {
   // before register add hash and send email verification
@@ -160,7 +119,7 @@ module.exports = function(Tukang) {
 
             next();
           } else {
-            let access = {};
+            let admin = false;
             let company = {}; //id, name
             let hashGroup = false;
 
@@ -172,7 +131,7 @@ module.exports = function(Tukang) {
                 discipline: userData.discipline === undefined ? '' : userData.discipline,
                 email: ctx.args.credentials.email,
                 token: user.id,
-                access,
+                admin,
                 company,
                 hashGroup,
               }
@@ -205,19 +164,18 @@ module.exports = function(Tukang) {
               });
             };
 
-            // get access -> get hasGroup -> get company name
-            getUserAccess({ models: Tukang.app.models, userId: user.userId,
-              callback: (instance) => {
-                log("getUserAccess instance", instance);
+            isAdmin({ models: Tukang.app.models, userId: user.userId,
+              callback: (isUserAdmin) => {
+                log("isAdmin isAdmin", isUserAdmin, true);
 
-                access = instance;
+                admin = isUserAdmin;
                 getGroup();
               },
               errorCallback: () => {
-                log("getUserAccess errorCallback");
+                log("isAdmin errorCallback");
                 generateResult();
               }
-            });
+            }, 'tukang.js');
           }
         });
     }
@@ -308,7 +266,7 @@ module.exports = function(Tukang) {
         errorCallback: () => {
           generateUserDataToRecord();
         }
-      });
+      }, 'tukang.js');
     }
 
     // check user password

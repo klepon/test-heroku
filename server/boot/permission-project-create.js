@@ -1,6 +1,21 @@
 const modelPermissions = require('../_static-permissions.js');
 
-// perlu dirombak sesuai flowcart
+const log = (label, data, inline) => {
+  return;
+  if (data === undefined) {
+    console.log(`\n* ==== permision-project-create.js ==================== ${label} ======================== *`);
+  } else {
+    console.log(`==== permision-project-create.js ==================== ${label}:${inline ? '' : '\n'}`, data);
+  }
+};
+
+const countMyProjects = (models, userId, callback) => {
+  models.Project.count({
+    ownerID: userId
+  }, function(err, count) {
+    callback(count);
+  })
+}
 
 module.exports = function(app) {
   for(const roleObj of modelPermissions) {
@@ -20,48 +35,41 @@ module.exports = function(app) {
         return reject();
       }
 
-      // console.log("======================================= auth disabled lo =======================================");
+      // log("auth disabled lo");
       // do not allow anonymous users
       if (!context.accessToken.userId) {
         return reject();
       }
 
-      // limit 1 except has access roleKey admin or in a company
+      /* is admin? allow
+      * no admin? no project created? allowed
+      */
+      log('context.accessToken', context.accessToken);
+      log('context.accessToken.userId', context.accessToken.userId, true);
       app.models.Access.find({
-        fields: {
-          roleKey: true,
-          projectID: true
-        },
         where: {
           tukangID: context.accessToken.userId
         }
-      }, function(err, rs) {
-        if (err) {
+      }, function(err, instance){
+        log('instance', instance);
+
+        // no project at all, allowed
+        if (instance.length === 0) {
+          log('no project no admin');
           cb(null, true); // no project found for this user
+          return;
         }
 
-        // user exist on access, check it roleKey
-        if (rs) {
-          // console.log('=== access rs:', rs);
-          // if admin
-          if(rs.find(i => {
-            return i.roleKey.find(r => r === 'admin')
-          })) {
+        // found project, let check if admin
+        if (instance.length > 0) {
+
+          if (instance.find(access => access.roleKey === 'admin')) { // admin
+            log('is admin');
             cb(null, true);
-          }
-
-          // if not admin, let check the group/company; exist on group = allow, no exist = disallow
-          else {
-            app.model.Group.count({
-              projectID: {
-                inq: rs.map(i => i.projectID)
-              }
-            }, function(err, rs) {
-              if (err) { // not in a company, but already have on project, no mor project for you :D
-                reject();
-              }
-
-              return cb(null, rs > 0);
+          } else { // no project created
+            countMyProjects(app.models, context.accessToken.userId, function(count){
+              log('no project created, count === 0', count === 0, true);
+              cb(null, count === 0);
             });
           }
         }

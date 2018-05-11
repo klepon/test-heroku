@@ -14,7 +14,9 @@ module.exports = function(Project) {
   /* ======= create ======== */
   // assign date to project on create
   Project.beforeRemote('create', function(ctx, model, next) {
+    log('ctx.args', ctx.args);
     ctx.args.data.date = Date.now();
+    ctx.args.data.ownerID = ctx.args.options.accessToken.userId;
     next();
   });
 
@@ -29,12 +31,16 @@ module.exports = function(Project) {
         }
       }).map(i => i.roleKey)
     }, function(err, rs) {
+
+      log('rs', rs);
+      log('model', model);
+
       next();
     });
   });
 
   /* ======= find ======== */
-  // allowed to find all project in company if any but only can see detail of assigned project, handle in afterRemote
+  // allowed to find any project if have access
   Project.beforeRemote('find', function(ctx, model, next) {
     function ownProjectOnly() {
       ctx.args.filter = {
@@ -51,7 +57,7 @@ module.exports = function(Project) {
         ctx.args.filter = {
           where: {
             id: {
-              inq: data.map(i => i.projectID),
+              inq: data.filter(item => item.roleKey.indexOf('findProject') >= 0).map(i => i.projectID),
             }
           }
         };
@@ -90,16 +96,15 @@ module.exports = function(Project) {
   //   next();
   // });
 
-  // remove all detail project if not admin and not asigned project
-  Project.afterRemote('findById', function(ctx, model, next) {
-    console.log('======= after findById - ctx.args:', ctx.args);
-    console.log('======= after findById - model:', model);
-
-    // if not user and project not in group, trim  detail, add message code to contact admin/manager
-
-
-    next();
-  });
+  // // remove all detail project if not admin and not asigned project
+  // Project.afterRemote('findById', function(ctx, model, next) {
+  //   log('after findById - ctx.args:', ctx.args);
+  //   log('after findById - model:', model);
+  //
+  //   // if not user and project not in group, trim  detail, add message code to contact admin/manager
+  //
+  //   next();
+  // });
 
   /* ======= dataSourceAttached ======== */
   // get sprint, task, comment, and note on request project
@@ -127,29 +132,6 @@ module.exports = function(Project) {
       return find.apply(this, arguments);
     };
   });
-
-  // find my company projects only for user register in a  group
-  Project.getCompanyProjects = function(modelID, cb) {
-    Project.findById( modelID, function (err, instance) {
-
-      console.log(instance);
-
-      var response = `Name of coffee shop is ${instance.name}`;
-      cb(null, response);
-
-      console.log(response);
-
-    });
-  }
-
-  Project.remoteMethod (
-    'getCompanyProjects',
-    {
-      http: {path: '/getname', verb: 'get'},
-      accepts: {arg: 'id', type: 'number', http: { source: 'query' } },
-      returns: {arg: 'name', type: 'string'}
-    }
-  );
 
   Project.disableRemoteMethodByName("prototype.__get__sprints");
   Project.disableRemoteMethodByName("prototype.__count__sprints");
